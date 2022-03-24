@@ -1,4 +1,4 @@
-# CajeroAutomatico
+# Cajero Automático
 Imitación de funciones básicas de un cajero de un banco, hecho con Java.
 Primer  código realizado con Java, en el cual simulo un cajero de banco, 
 el cual te permite acceder a tu cuenta, ver tus movimientos, hacer transferencias , 
