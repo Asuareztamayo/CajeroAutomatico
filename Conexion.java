@@ -48,7 +48,8 @@ public class Conexion {
         return (Connection) DriverManager.getConnection(url, user, password);
     }
 
-    //En este método convertimos las tarjetas de débito de nuestra base de datos en un array, que necesitaremos consultar más adelante.
+    // En este método convertimos las tarjetas de débito de nuestra base de datos en
+    // un array, que necesitaremos consultar más adelante.
     public ArrayList tarjetasDebito() {
         ArrayList<Long> resultadoTarjetas = new ArrayList<>();
         try (Connection conn = getConn();
@@ -67,8 +68,11 @@ public class Conexion {
         return resultadoTarjetas;
     }
 
-    //En este método pediremos al usuario que introduzca su número de tarjeta, si exite en nuestro array anterios nos dara paso a poner el pin, si el pin introducido coincide con el pin traido de la base de datos nos permitira el acceso al menu.
-    public void acceso(){
+    // En este método pediremos al usuario que introduzca su número de tarjeta, si
+    // exite en nuestro array anterios nos dara paso a poner el pin, si el pin
+    // introducido coincide con el pin traido de la base de datos nos permitira el
+    // acceso al menu.
+    public void acceso() {
         Long numeroIngresado;
         Integer pinIngresado = 0;
         Integer pin = 0;
@@ -80,72 +84,40 @@ public class Conexion {
         }
         System.out.println("Ingresa tu número de tarjeta");
         numeroIngresado = Long.parseLong(cnsl.readLine());
-        if(tarjetasDebito().contains(numeroIngresado)){
-        try (Connection conn = getConn();
-            Statement stmt = conn.createStatement()) {
-            ResultSet resultado = stmt.executeQuery("SELECT idtarjetaDebito, pin FROM banco.tarjetadebito WHERE numero = '"+ numeroIngresado +"' ");
-            while (resultado.next()) {
-                idtarjetaDebito = resultado.getInt(1);
-                pin = (Integer) resultado.getObject(2);
-            }
-            System.out.println("Introduce el pin de '" + numeroIngresado +"' ");
-            pinIngresado = Integer.parseInt(cnsl.readLine());
-            if(pinIngresado == pin){
-                System.out.println("Has accedido a tu cuenta");
-                menu();
-            }else {
-                System.out.println("El pin no coincide.");
-            }
-        }catch (SQLException ex) {
+        if (tarjetasDebito().contains(numeroIngresado)) {
+            try (Connection conn = getConn();
+                    Statement stmt = conn.createStatement()) {
+                ResultSet resultado = stmt
+                        .executeQuery("SELECT idtarjetaDebito, pin FROM banco.tarjetadebito WHERE numero = '"
+                                + numeroIngresado + "' ");
+                while (resultado.next()) {
+                    idtarjetaDebito = resultado.getInt(1);
+                    pin = resultado.getInt(2);
+                }
+                System.out.println("Introduce el pin de '" + numeroIngresado + "' ");
+                pinIngresado = td.nextInt();
+                System.out.println(pin);
+                if (pinIngresado.equals(pin)) { 
+                    System.out.println("Has accedido a tu cuenta");
+                    menu(idtarjetaDebito);
+                } else {
+                    System.out.println("El pin no coincide.");
+                }
+            } catch (SQLException ex) {
                 System.out.println("SQLException: " + ex.getMessage());
                 System.out.println("SQLState: " + ex.getSQLState());
                 System.out.println("VendorError: " + ex.getErrorCode());
             }
-        }else {
+        } else {
             System.out.println("No encontramos su tarjeta.");
         }
     }
 
-    // public void acceder() {
-    //     try (Connection conn = getConn();
-    //             Statement stmt = conn.createStatement()) {
-    //         ResultSet resultado = stmt.executeQuery("SELECT numero, pin FROM banco.tarjetadebito");
-    //         int a = 0;
-    //         ArrayList<Number> resultadosTD = new ArrayList<>();
-    //         ArrayList<Integer> resultadosPinTD = new ArrayList<>();
-    //         while (resultado.next()) {
 
-    //             Number numero = (Number) resultado.getObject(1);
-    //             int pin = (int) resultado.getObject(2);
-    //             resultadosTD.add(numero);
-    //             resultadosPinTD.add(pin);
-    //             int pin2 = 0;
-    //             for (Number number : resultadosTD) {
-    //                 if (a == 0) {
-    //                     System.out.println("*********************");
-    //                     System.out.println("Introduce el pin de : " + number);
-    //                     pin2 = td.nextInt();
-    //                 }
-    //                 if (a == 0 && pin2 == pin) {
-    //                     System.out.println("*********************");
-    //                     System.out.println("Has accedido a tu cuenta");
-    //                     System.out.println("*********************");
-    //                     menu();
-    //                 }
-    //                 a += 1;
-    //             }
-    //         }
-    //         System.out.println("El pin no es correcto");
-    //     } catch (SQLException ex) {
-    //         System.out.println("SQLException: " + ex.getMessage());
-    //         System.out.println("SQLState: " + ex.getSQLState());
-    //         System.out.println("VendorError: " + ex.getErrorCode());
-    //     }
-
-    // }
-
-    //En este método con la clase Scanner podremos elegir entre varias opciones, que nos llevaran a distintos métodos relacionados con la actividad de un cajero del banco.
-    public void menu() {
+    // En este método con la clase Scanner podremos elegir entre varias opciones,
+    // que nos llevaran a distintos métodos relacionados con la actividad de un
+    // cajero del banco.
+    public void menu(Integer idtarjeta) {
 
         int option = 0;
 
@@ -162,19 +134,19 @@ public class Conexion {
 
             switch (option) {
                 case 1:
-                    verMovimientos();
+                    verMovimientos(idtarjeta);
                     break;
                 case 2:
-                    retirarDinero();
+                    retirarDinero(idtarjeta);
                     break;
                 case 3:
-                    ingresarDinero();
+                    ingresarDinero(idtarjeta);
                     break;
                 case 4:
-                    realizarTransferencia();
+                    realizarTransferencia(idtarjeta);
                     break;
                 case 5:
-                    cambiarPin();
+                    cambiarPin(idtarjeta);
                     break;
                 case 6:
                     salir();
@@ -183,15 +155,16 @@ public class Conexion {
         } while (option != 6);
     }
 
-    //Aquí podremos ver los movimiento realizados en la cuenta asociada a la tarjeta introducida y consultar el saldo disponible.
-    public void verMovimientos() {
+    // Aquí podremos ver los movimiento realizados en la cuenta asociada a la
+    // tarjeta introducida y consultar el saldo disponible.
+    public void verMovimientos(Integer tarjeta) {
 
         String movimientos = "";
 
         try (Connection conn = getConn();
                 Statement stmt = conn.createStatement()) {
             ResultSet resultado = stmt.executeQuery(
-                    "SELECT movimientos.fecha,  movimientos.mensaje , movimientos.tipoDeMovimiento, movimientos.cantidad FROM banco.tarjetadebito INNER JOIN banco.movimientos ON tarjetadebito.cuenta_idcuenta = movimientos.cuenta_idcuenta WHERE idtarjetaDebito = 1;");
+                    "SELECT movimientos.fecha,  movimientos.mensaje , movimientos.tipoDeMovimiento, movimientos.cantidad FROM banco.tarjetadebito INNER JOIN banco.movimientos ON tarjetadebito.cuenta_idcuenta = movimientos.cuenta_idcuenta WHERE idtarjetaDebito = '" + tarjeta +"'';");
             System.out.println("*********************");
             System.out.println("Sus movimientos son: ");
             System.out.println("*********************");
@@ -206,7 +179,7 @@ public class Conexion {
             }
             System.out.println("*********************");
 
-            System.out.println("Su saldo actual es de : " + saldo().toString() + "E");
+            System.out.println("Su saldo actual es de : " + saldo(tarjeta).toString() + "E");
             System.out.println("*********************");
 
         } catch (SQLException ex) {
@@ -216,13 +189,14 @@ public class Conexion {
         }
     }
 
-    //Método que calcula el saldo de la cuenta sumando y restando el monto de los movimientos.
-    public Double saldo() {
+    // Método que calcula el saldo de la cuenta sumando y restando el monto de los
+    // movimientos.
+    public Double saldo(Integer tarjeta) {
         Double sum = 0.0;
         try (Connection conn = getConn();
                 Statement stmt = conn.createStatement()) {
             ResultSet resultado = stmt.executeQuery(
-                    "SELECT cantidad FROM banco.tarjetadebito INNER JOIN banco.movimientos ON tarjetadebito.cuenta_idcuenta = movimientos.cuenta_idcuenta WHERE idtarjetaDebito = 1;");
+                    "SELECT cantidad FROM banco.tarjetadebito INNER JOIN banco.movimientos ON tarjetadebito.cuenta_idcuenta = movimientos.cuenta_idcuenta WHERE idtarjetaDebito = '" + tarjeta +"'';");
             while (resultado.next()) {
                 BigDecimal tmp = (BigDecimal) resultado.getObject(1);
                 sum = tmp.doubleValue() + sum;
@@ -236,8 +210,10 @@ public class Conexion {
         return sum;
     }
 
-    //Genera un nuevo movimiento en la cuenta, en este caso un movimiento negativo, primero comprueba cual es el saldo actual de la cuenta, y si el dinero pedido por el usuario es menor a ese nos permite realizar el movimiento.
-    public void retirarDinero() {
+    // Genera un nuevo movimiento en la cuenta, en este caso un movimiento negativo,
+    // primero comprueba cual es el saldo actual de la cuenta, y si el dinero pedido
+    // por el usuario es menor a ese nos permite realizar el movimiento.
+    public void retirarDinero(Integer tarjeta) {
         Console cnsl = System.console();
         if (cnsl == null) {
             System.out.println("No console available");
@@ -246,7 +222,7 @@ public class Conexion {
         try (Connection conn = getConn();
                 Statement stmt = conn.createStatement()) {
             ResultSet resultado = stmt.executeQuery(
-                    "SELECT cantidad FROM banco.tarjetadebito INNER JOIN banco.movimientos ON tarjetadebito.cuenta_idcuenta = movimientos.cuenta_idcuenta WHERE idtarjetaDebito = 1;");
+                    "SELECT cantidad FROM banco.tarjetadebito INNER JOIN banco.movimientos ON tarjetadebito.cuenta_idcuenta = movimientos.cuenta_idcuenta WHERE idtarjetaDebito = '" + tarjeta +"'';");
             Double sum = 0.0;
             Double dineroRetiro = 0.0;
             Double rest = 0.0;
@@ -257,7 +233,7 @@ public class Conexion {
             System.out.println("*********************");
             System.out.println("Cuánto dinero desea retirar?");
             dineroRetiro = Double.parseDouble(cnsl.readLine("-"));
-            if (dineroRetiro > saldo()) {
+            if (dineroRetiro > saldo(tarjeta)) {
                 System.out.println("No tienes dinero suficiente");
                 return;
             } else {
@@ -277,8 +253,9 @@ public class Conexion {
         }
     }
 
-    //Genera un movimiento positivo en la cuenta, añadiendo el monto que el usuario haya escrito.
-    public void ingresarDinero() {
+    // Genera un movimiento positivo en la cuenta, añadiendo el monto que el usuario
+    // haya escrito.
+    public void ingresarDinero(Integer tarjeta) {
         Console cnsl = System.console();
         if (cnsl == null) {
             System.out.println("No console available");
@@ -287,7 +264,7 @@ public class Conexion {
         try (Connection conn = getConn();
                 Statement stmt = conn.createStatement()) {
             ResultSet resultado = stmt.executeQuery(
-                    "SELECT cantidad FROM banco.tarjetadebito INNER JOIN banco.movimientos ON tarjetadebito.cuenta_idcuenta = movimientos.cuenta_idcuenta WHERE idtarjetaDebito = 1;");
+                    "SELECT cantidad FROM banco.tarjetadebito INNER JOIN banco.movimientos ON tarjetadebito.cuenta_idcuenta = movimientos.cuenta_idcuenta WHERE idtarjetaDebito = '" + tarjeta +"'';");
             Double sum = 0.0;
             Double ingreso = 0.0;
             Double total = 0.0;
@@ -315,7 +292,8 @@ public class Conexion {
         System.out.println("*********************");
     }
 
-    //En este método nos convierte las cuentas pedidas a la base de datos en un array, que necesitaremos consultar mas adelante.
+    // En este método nos convierte las cuentas pedidas a la base de datos en un
+    // array, que necesitaremos consultar mas adelante.
     public ArrayList cuentas() {
         ArrayList<String> resultadoCuentas = new ArrayList<>();
         try (Connection conn = getConn();
@@ -334,8 +312,12 @@ public class Conexion {
         return resultadoCuentas;
     }
 
-    //Método que nos permitir pasar dinero de una cuenta a otra, el usuario introduce un numero de cuenta al cual desea enviar el dinero, con el array anterior confirmamos que esa cuenta existe y procedemos a hacer la transferencia, aquí ocurren dos insert en la base de datos, uno negativo en la cuenta de quien manda el dinero y una positiva en quien recive el dinero.
-    public void realizarTransferencia() {
+    // Método que nos permitir pasar dinero de una cuenta a otra, el usuario
+    // introduce un numero de cuenta al cual desea enviar el dinero, con el array
+    // anterior confirmamos que esa cuenta existe y procedemos a hacer la
+    // transferencia, aquí ocurren dos insert en la base de datos, uno negativo en
+    // la cuenta de quien manda el dinero y una positiva en quien recive el dinero.
+    public void realizarTransferencia(Integer tarjeta) {
         Console cnsl = System.console();
         if (cnsl == null) {
             System.out.println("No console available");
@@ -346,7 +328,7 @@ public class Conexion {
         try (Connection conn = getConn();
                 Statement stmt = conn.createStatement()) {
             ResultSet resultado = stmt.executeQuery(
-                    "SELECT cantidad FROM banco.tarjetadebito INNER JOIN banco.movimientos ON tarjetadebito.cuenta_idcuenta = movimientos.cuenta_idcuenta WHERE idtarjetaDebito = 1;");
+                    "SELECT cantidad FROM banco.tarjetadebito INNER JOIN banco.movimientos ON tarjetadebito.cuenta_idcuenta = movimientos.cuenta_idcuenta WHERE idtarjetaDebito = '" + tarjeta +"'';");
             Double sum = 0.0;
             Double rest = 0.0;
             while (resultado.next()) {
@@ -356,7 +338,7 @@ public class Conexion {
             System.out.println("*********************");
             System.out.println("Cuánto dinero desea transferir?");
             dineroTransferencia = Double.parseDouble(cnsl.readLine("-"));
-            if (dineroTransferencia > saldo()) {
+            if (dineroTransferencia > saldo(tarjeta)) {
                 System.out.println("No tienes dinero suficiente");
                 return;
             } else {
@@ -405,13 +387,13 @@ public class Conexion {
         }
     }
 
-    //método que nos permite salir del menu del cajero.
+    // método que nos permite salir del menu del cajero.
     public void salir() {
         System.out.println("Gracias por la confianza, que tenga un feliz día");
     }
 
-    //Método que nos permite cambiar el pin de nuestra tarjeta de débito.
-    public void cambiarPin() {
+    // Método que nos permite cambiar el pin de nuestra tarjeta de débito.
+    public void cambiarPin(Integer tarjeta) {
         Console cnsl = System.console();
         if (cnsl == null) {
             System.out.println("No console available");
@@ -422,7 +404,7 @@ public class Conexion {
         try (Connection conn = getConn();
                 Statement stmt = conn.createStatement()) {
             ResultSet resultado = stmt.executeQuery(
-                    "SELECT pin FROM banco.tarjetadebito WHERE idtarjetaDebito = 1;");
+                    "SELECT pin FROM banco.tarjetadebito WHERE idtarjetaDebito = '" + tarjeta +"'';");
             while (resultado.next()) {
                 pin = (Integer) resultado.getObject(1);
             }
@@ -435,7 +417,7 @@ public class Conexion {
                 Statement stmt2 = conn.createStatement();
                 stmt2.executeUpdate(
                         "UPDATE `banco`.`tarjetacredito` SET `pin` = '" + nuevoPin
-                                + "' WHERE (`idtarjetaCredito` = '1') and (`cuenta_idcuenta` = '1');");
+                                + "' WHERE (`idtarjetaCredito` = ''" + tarjeta +"''') and (`cuenta_idcuenta` = '1');");
                 System.out.println("El pin se ha cambiado");
             }
         } catch (SQLException ex) {

@@ -6,7 +6,6 @@ public class Main {
     conexion.conectar();
     System.out.println("Bienvenido al banco H&B");
     System.out.println("*********************");
-    System.out.println("Introduzca su tarjeta");
     conexion.acceso();
   }
 }
